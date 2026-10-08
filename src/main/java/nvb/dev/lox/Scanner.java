@@ -127,18 +127,25 @@ public class Scanner {
     }
 
     private void blockComment() {
-        while (!isAtEnd() && !(peek() == '*' && peekNext() == '/')) {
-            if (peek() == '\n') line++;
-            advance();
+        int depth = 1;
+
+        while (!isAtEnd() && depth > 0) {
+            if (peek() == '/' && peekNext() == '*') {
+                advance();
+                advance();
+                depth++;
+            } else if (peek() == '*' && peekNext() == '/') {
+                advance();
+                advance();
+                depth--;
+            } else {
+                if (peek() == '\n') line++;
+                advance();
+            }
         }
 
-        if (isAtEnd()) {
+        if (isAtEnd() && depth > 0)
             Lox.error(line, "Unterminated comment.");
-            return;
-        }
-
-        advance();
-        advance();
     }
 
     private void identifier() {
