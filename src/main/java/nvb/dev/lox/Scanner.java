@@ -90,9 +90,34 @@ public class Scanner {
                 string();
                 break;
             default:
-                Lox.error(line, "Unexpected character.");
+                if (isDigit(ch))
+                    number();
+                else
+                    Lox.error(line, "Unexpected character.");
                 break;
         }
+    }
+
+    private boolean isDigit(char ch) {
+        return Character.isDigit(ch);
+    }
+
+    private void number() {
+        while (isDigit(peek()))
+            advance();
+
+        if (peek() == '.' && isDigit(peekNext())) {
+            do advance();
+            while (isDigit(peek()));
+        }
+
+        addToken(TokenType.NUMBER,
+                Double.parseDouble(source.substring(start, current)));
+    }
+
+    private char peekNext() {
+        if (current + 1 >= source.length()) return '\0';
+        return source.charAt(current + 1);
     }
 
     private void string() {
