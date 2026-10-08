@@ -99,6 +99,8 @@ public class Scanner {
                 if (match('/')) {
                     while (peek() != '\n' && !isAtEnd())
                         advance();
+                } else if (match('*')) {
+                    blockComment();
                 } else {
                     addToken(TokenType.SLASH);
                 }
@@ -122,6 +124,21 @@ public class Scanner {
                     Lox.error(line, "Unexpected character.");
                 break;
         }
+    }
+
+    private void blockComment() {
+        while (!isAtEnd() && !(peek() == '*' && peekNext() == '/')) {
+            if (peek() == '\n') line++;
+            advance();
+        }
+
+        if (isAtEnd()) {
+            Lox.error(line, "Unterminated comment.");
+            return;
+        }
+
+        advance();
+        advance();
     }
 
     private void identifier() {
