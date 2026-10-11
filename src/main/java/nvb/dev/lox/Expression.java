@@ -12,9 +12,9 @@ public abstract class Expression {
     abstract <R> R accept(Visitor<R> visitor);
 
     static class Binary extends Expression {
-        private final Expression left;
-        private final Token operator;
-        private final Expression right;
+        final Expression left;
+        final Token operator;
+        final Expression right;
 
         Binary(Expression left, Token operator, Expression right) {
             this.left = left;
@@ -29,7 +29,7 @@ public abstract class Expression {
     }
 
     static class Literal extends Expression {
-        private final Object value;
+        final Object value;
 
         Literal(Object value) {
             this.value = value;
@@ -42,7 +42,7 @@ public abstract class Expression {
     }
 
     static class Grouping extends Expression {
-        private final Expression expression;
+        final Expression expression;
 
         Grouping(Expression expression) {
             this.expression = expression;
@@ -55,8 +55,8 @@ public abstract class Expression {
     }
 
     static class Unary extends Expression {
-        private final Expression operand;
-        private final Token operator;
+        final Expression operand;
+        final Token operator;
 
         Unary(Expression operand, Token operator) {
             this.operand = operand;
