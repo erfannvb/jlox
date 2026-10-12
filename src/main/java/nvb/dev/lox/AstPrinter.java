@@ -2,10 +2,6 @@ package nvb.dev.lox;
 
 public class AstPrinter implements Expression.Visitor<String> {
 
-    String print(Expression expression) {
-        return expression.accept(this);
-    }
-
     @Override
     public String visitBinaryExpr(Expression.Binary expr) {
         return parenthesize(expr.operator.lexeme, expr.left, expr.right);
