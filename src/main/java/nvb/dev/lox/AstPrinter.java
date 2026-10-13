@@ -35,4 +35,8 @@ public class AstPrinter implements Expression.Visitor<String> {
 
         return builder.toString();
     }
+
+    String print(Expression expression) {
+        return expression.accept(this);
+    }
 }
