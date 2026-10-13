@@ -4,8 +4,11 @@ public abstract class Expression {
 
     interface Visitor<R> {
         R visitBinaryExpr(Binary expr);
+
         R visitLiteralExpr(Literal expr);
+
         R visitGroupingExpr(Grouping expr);
+
         R visitUnaryExpr(Unary expr);
     }
 
@@ -55,12 +58,12 @@ public abstract class Expression {
     }
 
     static class Unary extends Expression {
-        final Expression operand;
         final Token operator;
+        final Expression operand;
 
-        Unary(Expression operand, Token operator) {
-            this.operand = operand;
+        Unary(Token operator, Expression operand) {
             this.operator = operator;
+            this.operand = operand;
         }
 
         @Override
