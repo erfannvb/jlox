@@ -23,6 +23,11 @@ public class AstPrinter implements Expression.Visitor<String> {
         return parenthesize(expr.operator.lexeme, expr.operand);
     }
 
+    @Override
+    public String visitCommaExpr(Expression.Comma expr) {
+        return parenthesize(",", expr.left, expr.right);
+    }
+
     private String parenthesize(String name, Expression... expressions) {
         StringBuilder builder = new StringBuilder();
 

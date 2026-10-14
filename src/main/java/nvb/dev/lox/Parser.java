@@ -23,7 +23,14 @@ public class Parser {
     }
 
     private Expression expression() {
-        return equality();
+        Expression expr = equality();
+
+        while (match(TokenType.COMMA)) {
+            Expression right = equality();
+            expr = new Expression.Comma(expr, right);
+        }
+
+        return expr;
     }
 
     private Expression equality() {

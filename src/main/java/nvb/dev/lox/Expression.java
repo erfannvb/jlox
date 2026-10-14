@@ -10,6 +10,8 @@ public abstract class Expression {
         R visitGroupingExpr(Grouping expr);
 
         R visitUnaryExpr(Unary expr);
+
+        R visitCommaExpr(Comma expr);
     }
 
     abstract <R> R accept(Visitor<R> visitor);
@@ -69,6 +71,21 @@ public abstract class Expression {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitUnaryExpr(this);
+        }
+    }
+
+    static class Comma extends Expression {
+        final Expression left;
+        final Expression right;
+
+        Comma(Expression left, Expression right) {
+            this.left = left;
+            this.right = right;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitCommaExpr(this);
         }
     }
 
