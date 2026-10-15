@@ -23,11 +23,24 @@ public class Parser {
     }
 
     private Expression expression() {
-        Expression expr = equality();
+        Expression expr = ternary();
 
         while (match(TokenType.COMMA)) {
-            Expression right = equality();
+            Expression right = ternary();
             expr = new Expression.Comma(expr, right);
+        }
+
+        return expr;
+    }
+
+    private Expression ternary() {
+        Expression expr = equality();
+
+        if (match(TokenType.QUESTION)) {
+            Expression trueBranch = expression();
+            consume(TokenType.COLON, ": is expected");
+            Expression elseBranch = ternary();
+            expr = new Expression.Conditional(expr, trueBranch, elseBranch);
         }
 
         return expr;

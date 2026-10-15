@@ -28,6 +28,11 @@ public class AstPrinter implements Expression.Visitor<String> {
         return parenthesize(",", expr.left, expr.right);
     }
 
+    @Override
+    public String visitConditionalExpr(Expression.Conditional expr) {
+        return parenthesize("conditional", expr.condition, expr.trueBranch, expr.elseBranch);
+    }
+
     private String parenthesize(String name, Expression... expressions) {
         StringBuilder builder = new StringBuilder();
 

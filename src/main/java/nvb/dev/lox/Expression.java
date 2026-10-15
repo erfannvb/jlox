@@ -12,6 +12,8 @@ public abstract class Expression {
         R visitUnaryExpr(Unary expr);
 
         R visitCommaExpr(Comma expr);
+
+        R visitConditionalExpr(Conditional expr);
     }
 
     abstract <R> R accept(Visitor<R> visitor);
@@ -86,6 +88,23 @@ public abstract class Expression {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitCommaExpr(this);
+        }
+    }
+
+    static class Conditional extends Expression {
+        final Expression condition;
+        final Expression trueBranch;
+        final Expression elseBranch;
+
+        Conditional(Expression condition, Expression trueBranch, Expression elseBranch) {
+            this.condition = condition;
+            this.trueBranch = trueBranch;
+            this.elseBranch = elseBranch;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitConditionalExpr(this);
         }
     }
 
