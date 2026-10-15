@@ -23,6 +23,13 @@ public class Parser {
     }
 
     private Expression expression() {
+        if (match(TokenType.COMMA)) {
+            Token operator = previous();
+            Lox.error(operator.line, "Missing left operand.");
+            ternary();
+            return null;
+        }
+
         Expression expr = ternary();
 
         while (match(TokenType.COMMA)) {
@@ -47,6 +54,13 @@ public class Parser {
     }
 
     private Expression equality() {
+        if (match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL)) {
+            Token operator = previous();
+            Lox.error(operator.line, "Missing left operand.");
+            comparison();
+            return null;
+        }
+
         Expression expr = comparison();
 
         while (match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL)) {
@@ -59,6 +73,13 @@ public class Parser {
     }
 
     private Expression comparison() {
+        if (match(TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL)) {
+            Token operator = previous();
+            Lox.error(operator.line, "Missing left operand.");
+            term();
+            return null;
+        }
+
         Expression expr = term();
 
         while (match(TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL)) {
@@ -71,6 +92,13 @@ public class Parser {
     }
 
     private Expression term() {
+        if (match(TokenType.PLUS)) {
+            Token operator = previous();
+            Lox.error(operator.line, "Missing left operand.");
+            factor();
+            return null;
+        }
+
         Expression expr = factor();
 
         while (match(TokenType.MINUS, TokenType.PLUS)) {
@@ -83,6 +111,13 @@ public class Parser {
     }
 
     private Expression factor() {
+        if (match(TokenType.STAR, TokenType.SLASH)) {
+            Token operator = previous();
+            Lox.error(operator.line, "Missing left operand.");
+            unary();
+            return null;
+        }
+
         Expression expr = unary();
 
         while (match(TokenType.STAR, TokenType.SLASH)) {
