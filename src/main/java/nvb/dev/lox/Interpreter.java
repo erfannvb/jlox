@@ -57,10 +57,10 @@ public class Interpreter implements Expression.Visitor<Object> {
                 if (left instanceof Double leftDouble && right instanceof Double rightDouble)
                     yield leftDouble + rightDouble;
 
-                if (left instanceof String leftStr && right instanceof String rightStr)
-                    yield leftStr + rightStr;
+                if (left instanceof String || right instanceof String)
+                    yield String.valueOf(left) + right;
 
-                throw new RuntimeError(expr.operator, "Operands must be two numbers or two strings.");
+                throw new RuntimeError(expr.operator, "Operands must be two numbers or at least one string.");
             }
             case SLASH -> {
                 checkNumberOperands(expr.operator, left, right);
