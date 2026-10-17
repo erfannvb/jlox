@@ -1,5 +1,6 @@
 package nvb.dev.lox;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Parser {
@@ -14,12 +15,13 @@ public class Parser {
         this.tokenList = tokenList;
     }
 
-    Expression parse() {
-        try {
-            return expression();
-        } catch (ParseError error) {
-            return null;
+    List<Statement> parse() {
+        List<Statement> statementList = new ArrayList<>();
+        while (!isAtEnd()) {
+            statementList.add(statement());
         }
+
+        return statementList;
     }
 
     private Expression expression() {
@@ -38,6 +40,23 @@ public class Parser {
         }
 
         return expr;
+    }
+
+    private Statement statement() {
+        if (match(TokenType.PRINT)) return printStatement();
+        return expressionStatement();
+    }
+
+    private Statement printStatement() {
+        Expression value = expression();
+        consume(TokenType.SEMICOLON, "Expect ';' after value.");
+        return new Statement.Print(value);
+    }
+
+    private Statement expressionStatement() {
+        Expression value = expression();
+        consume(TokenType.SEMICOLON, "Expect ';' after value.");
+        return new Statement.Expression(value);
     }
 
     private Expression ternary() {

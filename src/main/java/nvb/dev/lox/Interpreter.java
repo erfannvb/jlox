@@ -1,11 +1,14 @@
 package nvb.dev.lox;
 
-public class Interpreter implements Expression.Visitor<Object> {
+import java.util.List;
 
-    void interpret(Expression expression) {
+public class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void> {
+
+    void interpret(List<Statement> statements) {
         try {
-            Object value = evaluate(expression);
-            System.out.println(stringify(value));
+            for (Statement statement : statements) {
+                execute(statement);
+            }
         } catch (RuntimeError error) {
             Lox.runtimeError(error);
         }
@@ -116,6 +119,19 @@ public class Interpreter implements Expression.Visitor<Object> {
         return evaluate(expr.elseBranch);
     }
 
+    @Override
+    public Void visitExpressionStatement(Statement.Expression stmt) {
+        evaluate(stmt.expression);
+        return null;
+    }
+
+    @Override
+    public Void visitPrintStatement(Statement.Print stmt) {
+        Object value = evaluate(stmt.expression);
+        System.out.println(stringify(value));
+        return null;
+    }
+
     private Object evaluate(Expression expr) {
         return expr.accept(this);
     }
@@ -141,5 +157,9 @@ public class Interpreter implements Expression.Visitor<Object> {
     private void checkNumberOperands(Token operator, Object left, Object right) {
         if (left instanceof Double && right instanceof Double) return;
         throw new RuntimeError(operator, "Operands must be numbers.");
+    }
+
+    private void execute(Statement statement) {
+        statement.accept(this);
     }
 }
