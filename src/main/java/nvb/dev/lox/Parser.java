@@ -18,7 +18,7 @@ public class Parser {
     List<Statement> parse() {
         List<Statement> statementList = new ArrayList<>();
         while (!isAtEnd()) {
-            statementList.add(statement());
+            statementList.add(declaration());
         }
 
         return statementList;
@@ -28,18 +28,47 @@ public class Parser {
         if (match(TokenType.COMMA)) {
             Token operator = previous();
             Lox.error(operator.line, "Missing left operand.");
-            ternary();
+            assignment();
             return null;
         }
 
-        Expression expr = ternary();
+        Expression expr = assignment();
 
         while (match(TokenType.COMMA)) {
-            Expression right = ternary();
+            Expression right = assignment();
             expr = new Expression.Comma(expr, right);
         }
 
         return expr;
+    }
+
+    private Expression assignment() {
+        Expression expr = ternary();
+
+        if (match(TokenType.EQUAL)) {
+            Token equals = previous();
+            Expression value = assignment();
+
+            if (expr instanceof Expression.Variable variable) {
+                return new Expression.Assign(variable.name, value);
+            }
+
+            throw error(equals, "Invalid assignment target.");
+        }
+
+        return expr;
+    }
+
+    private Statement declaration() {
+        try {
+            if (match(TokenType.VAR))
+                return varDeclaration();
+
+            return statement();
+        } catch (ParseError error) {
+            synchronize();
+            return null;
+        }
     }
 
     private Statement statement() {
@@ -51,6 +80,17 @@ public class Parser {
         Expression value = expression();
         consume(TokenType.SEMICOLON, "Expect ';' after value.");
         return new Statement.Print(value);
+    }
+
+    private Statement varDeclaration() {
+        Token name = consume(TokenType.IDENTIFIER, "Expect variable name.");
+
+        Expression initializer = null;
+        if (match(TokenType.EQUAL))
+            initializer = expression();
+
+        consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
+        return new Statement.Var(name, initializer);
     }
 
     private Statement expressionStatement() {
@@ -165,6 +205,9 @@ public class Parser {
 
         if (match(TokenType.NUMBER, TokenType.STRING))
             return new Expression.Literal(previous().literal);
+
+        if (match(TokenType.IDENTIFIER))
+            return new Expression.Variable(previous());
 
         if (match(TokenType.LEFT_PARENTHESIS)) {
             Expression expr = expression();

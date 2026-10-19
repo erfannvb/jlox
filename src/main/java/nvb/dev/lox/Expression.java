@@ -14,6 +14,10 @@ public abstract class Expression {
         R visitCommaExpr(Comma expr);
 
         R visitConditionalExpr(Conditional expr);
+
+        R visitVariableExpr(Variable expr);
+
+        R visitAssignExpr(Assign expr);
     }
 
     abstract <R> R accept(Visitor<R> visitor);
@@ -105,6 +109,34 @@ public abstract class Expression {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitConditionalExpr(this);
+        }
+    }
+
+    static class Variable extends Expression {
+        final Token name;
+
+        Variable(Token name) {
+            this.name = name;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitVariableExpr(this);
+        }
+    }
+
+    static class Assign extends Expression {
+        final Token name;
+        final Expression value;
+
+        Assign(Token name, Expression value) {
+            this.name = name;
+            this.value = value;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitAssignExpr(this);
         }
     }
 
