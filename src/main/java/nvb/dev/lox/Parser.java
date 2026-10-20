@@ -15,13 +15,22 @@ public class Parser {
         this.tokenList = tokenList;
     }
 
-    List<Statement> parse() {
-        List<Statement> statementList = new ArrayList<>();
-        while (!isAtEnd()) {
-            statementList.add(declaration());
-        }
+    Statement parseRepl() {
+        try {
+            if (match(TokenType.VAR)) return varDeclaration();
+            if (match(TokenType.PRINT)) return printStatement();
 
-        return statementList;
+            Expression expr = expression();
+            if (match(TokenType.SEMICOLON))
+                return new Statement.Expression(expr);
+
+            if (!isAtEnd())
+                throw error(peek(), "Expect end of input.");
+
+            return new Statement.ReplExpression(expr);
+        } catch (ParseError error) {
+            return null;
+        }
     }
 
     private Expression expression() {

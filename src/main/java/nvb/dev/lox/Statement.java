@@ -6,6 +6,7 @@ public abstract class Statement {
 
     interface Visitor<R> {
         R visitExpressionStatement(Expression stmt);
+        R visitReplExpressionStatement(ReplExpression stmt);
         R visitPrintStatement(Print stmt);
         R visitVarStatement(Var stmt);
         R visitBlockStatement(Block stmt);
@@ -64,6 +65,19 @@ public abstract class Statement {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitBlockStatement(this);
+        }
+    }
+
+    static class ReplExpression extends Statement {
+        final nvb.dev.lox.Expression expression;
+
+        ReplExpression(nvb.dev.lox.Expression expression) {
+            this.expression = expression;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitReplExpressionStatement(this);
         }
     }
 
