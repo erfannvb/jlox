@@ -140,6 +140,13 @@ public class Interpreter implements Expression.Visitor<Object>, Statement.Visito
     }
 
     @Override
+    public Void visitReplExpressionStatement(Statement.ReplExpression stmt) {
+        Object value = evaluate(stmt.expression);
+        System.out.println(stringify(value));
+        return null;
+    }
+
+    @Override
     public Void visitPrintStatement(Statement.Print stmt) {
         Object value = evaluate(stmt.expression);
         System.out.println(stringify(value));
