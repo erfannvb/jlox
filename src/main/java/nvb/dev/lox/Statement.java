@@ -1,11 +1,14 @@
 package nvb.dev.lox;
 
+import java.util.List;
+
 public abstract class Statement {
 
     interface Visitor<R> {
         R visitExpressionStatement(Expression stmt);
         R visitPrintStatement(Print stmt);
         R visitVarStatement(Var stmt);
+        R visitBlockStatement(Block stmt);
     }
 
     abstract <R> R accept(Visitor<R> visitor);
@@ -48,6 +51,19 @@ public abstract class Statement {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitVarStatement(this);
+        }
+    }
+
+    static class Block extends Statement {
+        final List<Statement> statements;
+
+        Block(List<Statement> statements) {
+            this.statements = statements;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitBlockStatement(this);
         }
     }
 
