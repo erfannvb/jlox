@@ -159,7 +159,7 @@ public class Interpreter implements Expression.Visitor<Object>, Statement.Visito
         if (stmt.initializer != null)
             value = evaluate(stmt.initializer);
 
-        environment.defile(stmt.name.lexeme, value);
+        environment.define(stmt.name.lexeme, value);
         return null;
     }
 

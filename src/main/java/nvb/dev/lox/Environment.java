@@ -25,7 +25,7 @@ public class Environment {
         throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
     }
 
-    void defile(String name, Object value) {
+    void define(String name, Object value) {
         values.put(name, value);
     }
 
