@@ -156,6 +156,12 @@ public class Interpreter implements Expression.Visitor<Object>, Statement.Visito
         return null;
     }
 
+    @Override
+    public Void visitBlockStatement(Statement.Block stmt) {
+        executeBlock(stmt.statements, new Environment(environment));
+        return null;
+    }
+
     private Object evaluate(Expression expr) {
         return expr.accept(this);
     }
@@ -185,5 +191,19 @@ public class Interpreter implements Expression.Visitor<Object>, Statement.Visito
 
     private void execute(Statement statement) {
         statement.accept(this);
+    }
+
+    private void executeBlock(List<Statement> statements, Environment environment) {
+        Environment previous = this.environment;
+
+        try {
+            this.environment = environment;
+
+            for (Statement statement : statements) {
+                execute(statement);
+            }
+        } finally {
+            this.environment = previous;
+        }
     }
 }
