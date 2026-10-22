@@ -52,7 +52,7 @@ public class Parser {
     }
 
     private Expression assignment() {
-        Expression expr = ternary();
+        Expression expr = or();
 
         if (match(TokenType.EQUAL)) {
             Token equals = previous();
@@ -63,6 +63,30 @@ public class Parser {
             }
 
             throw error(equals, "Invalid assignment target.");
+        }
+
+        return expr;
+    }
+
+    private Expression or() {
+        Expression expr = and();
+
+        while (match(TokenType.OR)) {
+            Token operator = previous();
+            Expression right = and();
+            expr = new Expression.Logical(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    private Expression and() {
+        Expression expr = equality();
+
+        while (match(TokenType.AND)) {
+            Token operator = previous();
+            Expression right = equality();
+            expr = new Expression.Logical(expr, operator, right);
         }
 
         return expr;
@@ -81,9 +105,23 @@ public class Parser {
     }
 
     private Statement statement() {
+        if (match(TokenType.IF)) return ifStatement();
         if (match(TokenType.PRINT)) return printStatement();
         if (match(TokenType.LEFT_BRACE)) return new Statement.Block(block());
         return expressionStatement();
+    }
+
+    private Statement ifStatement() {
+        consume(TokenType.LEFT_PARENTHESIS, "Expect '(' after if.");
+        Expression condition = expression();
+        consume(TokenType.RIGHT_PARENTHESIS, "Expect ')' after if condition.");
+
+        Statement thenBranch = statement();
+        Statement elseBranch = null;
+        if (match(TokenType.ELSE))
+            elseBranch = statement();
+
+        return new Statement.If(condition, thenBranch, elseBranch);
     }
 
     private Statement printStatement() {

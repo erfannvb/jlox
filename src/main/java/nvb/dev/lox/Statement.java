@@ -10,6 +10,7 @@ public abstract class Statement {
         R visitPrintStatement(Print stmt);
         R visitVarStatement(Var stmt);
         R visitBlockStatement(Block stmt);
+        R visitIfStatement(If stmt);
     }
 
     abstract <R> R accept(Visitor<R> visitor);
@@ -78,6 +79,23 @@ public abstract class Statement {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitReplExpressionStatement(this);
+        }
+    }
+
+    static class If extends Statement {
+        final nvb.dev.lox.Expression condition;
+        final Statement thenBranch;
+        final Statement elseBranch;
+
+        If(nvb.dev.lox.Expression condition, Statement thenBranch, Statement elseBranch) {
+            this.condition = condition;
+            this.thenBranch = thenBranch;
+            this.elseBranch = elseBranch;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitIfStatement(this);
         }
     }
 
