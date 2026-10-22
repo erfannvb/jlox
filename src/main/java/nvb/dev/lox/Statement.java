@@ -11,6 +11,7 @@ public abstract class Statement {
         R visitVarStatement(Var stmt);
         R visitBlockStatement(Block stmt);
         R visitIfStatement(If stmt);
+        R visitWhileStatement(While stmt);
     }
 
     abstract <R> R accept(Visitor<R> visitor);
@@ -96,6 +97,21 @@ public abstract class Statement {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitIfStatement(this);
+        }
+    }
+
+    static class While extends Statement {
+        final nvb.dev.lox.Expression condition;
+        final Statement body;
+
+        While(nvb.dev.lox.Expression condition, Statement body) {
+            this.condition = condition;
+            this.body = body;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitWhileStatement(this);
         }
     }
 

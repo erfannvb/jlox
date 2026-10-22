@@ -107,6 +107,7 @@ public class Parser {
     private Statement statement() {
         if (match(TokenType.IF)) return ifStatement();
         if (match(TokenType.PRINT)) return printStatement();
+        if (match(TokenType.WHILE)) return whileStatement();
         if (match(TokenType.LEFT_BRACE)) return new Statement.Block(block());
         return expressionStatement();
     }
@@ -139,6 +140,14 @@ public class Parser {
 
         consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
         return new Statement.Var(name, initializer);
+    }
+
+    private Statement whileStatement() {
+        consume(TokenType.LEFT_PARENTHESIS, "Expect '(' after 'while'.");
+        Expression condition = expression();
+        consume(TokenType.RIGHT_PARENTHESIS, "Expect ')' after condition.");
+        Statement body = statement();
+        return new Statement.While(condition, body);
     }
 
     private List<Statement> block() {
