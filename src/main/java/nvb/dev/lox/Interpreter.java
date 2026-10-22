@@ -4,6 +4,8 @@ import java.util.List;
 
 public class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void> {
 
+    private static final Object UNINITIALIZED = new Object();
+
     private Environment environment = new Environment();
 
     void interpret(List<Statement> statements) {
@@ -123,7 +125,11 @@ public class Interpreter implements Expression.Visitor<Object>, Statement.Visito
 
     @Override
     public Object visitVariableExpr(Expression.Variable expr) {
-        return environment.get(expr.name);
+        Object obj = environment.get(expr.name);
+        if (obj == UNINITIALIZED)
+            throw new RuntimeError(expr.name, "Not initialized!");
+
+        return obj;
     }
 
     @Override
@@ -158,6 +164,8 @@ public class Interpreter implements Expression.Visitor<Object>, Statement.Visito
         Object value = null;
         if (stmt.initializer != null)
             value = evaluate(stmt.initializer);
+        else
+            value = UNINITIALIZED;
 
         environment.define(stmt.name.lexeme, value);
         return null;
