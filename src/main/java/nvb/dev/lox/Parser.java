@@ -1,6 +1,7 @@
 package nvb.dev.lox;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Parser {
@@ -105,11 +106,48 @@ public class Parser {
     }
 
     private Statement statement() {
+        if (match(TokenType.FOR)) return forStatement();
         if (match(TokenType.IF)) return ifStatement();
         if (match(TokenType.PRINT)) return printStatement();
         if (match(TokenType.WHILE)) return whileStatement();
         if (match(TokenType.LEFT_BRACE)) return new Statement.Block(block());
         return expressionStatement();
+    }
+
+    private Statement forStatement() {
+        consume(TokenType.LEFT_PARENTHESIS, "Expect '(' after 'for'.");
+
+        Statement initializer;
+        if (match(TokenType.SEMICOLON))
+            initializer = null;
+        else if (match(TokenType.VAR))
+            initializer = varDeclaration();
+        else
+            initializer = expressionStatement();
+
+        Expression condition = null;
+        if (!match(TokenType.SEMICOLON))
+            condition = expression();
+
+        consume(TokenType.SEMICOLON, "Expect ';' after loop condition.");
+
+        Expression increment = null;
+        if (!check(TokenType.RIGHT_PARENTHESIS))
+            increment = expression();
+
+        consume(TokenType.RIGHT_PARENTHESIS, "Expect ')' after for clauses.");
+
+        Statement body = statement();
+        if (increment != null)
+            body = new Statement.Block(Arrays.asList(body, new Statement.Expression(increment)));
+
+        if (condition == null) condition = new Expression.Literal(true);
+        body = new Statement.While(condition, body);
+
+        if (initializer != null)
+            body = new Statement.Block(Arrays.asList(initializer, body));
+
+        return body;
     }
 
     private Statement ifStatement() {
