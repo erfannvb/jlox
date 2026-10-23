@@ -7,6 +7,9 @@ public class Interpreter implements Expression.Visitor<Object>, Statement.Visito
     private static class BreakSignal extends RuntimeException {
     }
 
+    private static class ContinueSignal extends RuntimeException {
+    }
+
     private static final Object UNINITIALIZED = new Object();
 
     private Environment environment = new Environment();
@@ -212,14 +215,49 @@ public class Interpreter implements Expression.Visitor<Object>, Statement.Visito
                 execute(stmt.body);
             } catch (BreakSignal ignored) {
                 break;
+            } catch (ContinueSignal ignored) {
+                continue;
             }
         }
         return null;
     }
 
     @Override
+    public Void visitForStatement(Statement.For stmt) {
+        Environment previous = this.environment;
+
+        try {
+            this.environment = new Environment(this.environment);
+
+            if (stmt.initializer != null)
+                execute(stmt.initializer);
+
+            while (stmt.condition == null || isTruthy(evaluate(stmt.condition))) {
+                try {
+                    execute(stmt.body);
+                } catch (BreakSignal ignored) {
+                    break;
+                } catch (ContinueSignal ignored) {
+                }
+
+                if (stmt.increment != null)
+                    evaluate(stmt.increment);
+            }
+        } finally {
+            this.environment = previous;
+        }
+
+        return null;
+    }
+
+    @Override
     public Void visitBreakStatement(Statement.Break stmt) {
         throw new BreakSignal();
+    }
+
+    @Override
+    public Void visitContinueStatement(Statement.Continue stmt) {
+        throw new ContinueSignal();
     }
 
     private Object evaluate(Expression expr) {
