@@ -12,7 +12,9 @@ public abstract class Statement {
         R visitBlockStatement(Block stmt);
         R visitIfStatement(If stmt);
         R visitWhileStatement(While stmt);
+        R visitForStatement(For stmt);
         R visitBreakStatement(Break stmt);
+        R visitContinueStatement(Continue stmt);
     }
 
     abstract <R> R accept(Visitor<R> visitor);
@@ -116,11 +118,38 @@ public abstract class Statement {
         }
     }
 
+    static class For extends Statement {
+        final Statement initializer;
+        final nvb.dev.lox.Expression condition;
+        final nvb.dev.lox.Expression increment;
+        final Statement body;
+
+        For(Statement initializer, nvb.dev.lox.Expression condition, nvb.dev.lox.Expression increment, Statement body) {
+            this.initializer = initializer;
+            this.condition = condition;
+            this.increment = increment;
+            this.body = body;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitForStatement(this);
+        }
+    }
+
     static class Break extends Statement {
 
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitBreakStatement(this);
+        }
+    }
+
+    static class Continue extends Statement {
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitContinueStatement(this);
         }
     }
 

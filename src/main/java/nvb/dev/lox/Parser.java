@@ -113,6 +113,7 @@ public class Parser {
         if (match(TokenType.WHILE)) return whileStatement();
         if (match(TokenType.LEFT_BRACE)) return new Statement.Block(block());
         if (match(TokenType.BREAK)) return breakStatement();
+        if (match(TokenType.CONTINUE)) return continueStatement();
         return expressionStatement();
     }
 
@@ -143,19 +144,11 @@ public class Parser {
         Statement body;
         try {
             body = statement();
-            if (increment != null)
-                body = new Statement.Block(Arrays.asList(body, new Statement.Expression(increment)));
-
-            if (condition == null) condition = new Expression.Literal(true);
-            body = new Statement.While(condition, body);
-
-            if (initializer != null)
-                body = new Statement.Block(Arrays.asList(initializer, body));
         } finally {
             loopDepth--;
         }
 
-        return body;
+        return new Statement.For(initializer, condition, increment, body);
     }
 
     private Statement ifStatement() {
@@ -212,6 +205,16 @@ public class Parser {
             throw error(breakToken, "Can't use 'break' outside of a loop.");
 
         return new Statement.Break();
+    }
+
+    private Statement continueStatement() {
+        Token continueToken = previous();
+        consume(TokenType.SEMICOLON, "Expect ';' after 'continue'.");
+
+        if (loopDepth == 0)
+            throw error(continueToken, "Can't use 'continue' outside of a loop.");
+
+        return new Statement.Continue();
     }
 
     private List<Statement> block() {
