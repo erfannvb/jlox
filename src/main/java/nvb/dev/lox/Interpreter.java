@@ -4,6 +4,9 @@ import java.util.List;
 
 public class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void> {
 
+    private static class BreakSignal extends RuntimeException {
+    }
+
     private static final Object UNINITIALIZED = new Object();
 
     private Environment environment = new Environment();
@@ -205,9 +208,18 @@ public class Interpreter implements Expression.Visitor<Object>, Statement.Visito
     @Override
     public Void visitWhileStatement(Statement.While stmt) {
         while (isTruthy(evaluate(stmt.condition))) {
-            execute(stmt.body);
+            try {
+                execute(stmt.body);
+            } catch (BreakSignal ignored) {
+                break;
+            }
         }
         return null;
+    }
+
+    @Override
+    public Void visitBreakStatement(Statement.Break stmt) {
+        throw new BreakSignal();
     }
 
     private Object evaluate(Expression expr) {
