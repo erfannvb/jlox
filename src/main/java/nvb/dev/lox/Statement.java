@@ -15,6 +15,8 @@ public abstract class Statement {
         R visitForStatement(For stmt);
         R visitBreakStatement(Break stmt);
         R visitContinueStatement(Continue stmt);
+        R visitFunctionStatement(Function stmt);
+        R visitReturnStatement(Return stmt);
     }
 
     abstract <R> R accept(Visitor<R> visitor);
@@ -150,6 +152,38 @@ public abstract class Statement {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitContinueStatement(this);
+        }
+    }
+
+    static class Function extends Statement {
+        final Token name;
+        final List<Token> params;
+        final List<Statement> body;
+
+        Function(Token name, List<Token> params, List<Statement> body) {
+            this.name = name;
+            this.params = params;
+            this.body = body;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitFunctionStatement(this);
+        }
+    }
+
+    static class Return extends Statement {
+        final Token keyword;
+        final nvb.dev.lox.Expression value;
+
+        Return(Token keyword, nvb.dev.lox.Expression value) {
+            this.keyword = keyword;
+            this.value = value;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return null;
         }
     }
 

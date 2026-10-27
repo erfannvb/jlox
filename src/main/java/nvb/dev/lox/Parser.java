@@ -1,7 +1,6 @@
 package nvb.dev.lox;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class Parser {
@@ -96,6 +95,7 @@ public class Parser {
 
     private Statement declaration() {
         try {
+            if (match(TokenType.FUN)) return function("function");
             if (match(TokenType.VAR))
                 return varDeclaration();
 
@@ -110,6 +110,7 @@ public class Parser {
         if (match(TokenType.FOR)) return forStatement();
         if (match(TokenType.IF)) return ifStatement();
         if (match(TokenType.PRINT)) return printStatement();
+        if (match(TokenType.RETURN)) return returnStatement();
         if (match(TokenType.WHILE)) return whileStatement();
         if (match(TokenType.LEFT_BRACE)) return new Statement.Block(block());
         if (match(TokenType.BREAK)) return breakStatement();
@@ -168,6 +169,16 @@ public class Parser {
         Expression value = expression();
         consume(TokenType.SEMICOLON, "Expect ';' after value.");
         return new Statement.Print(value);
+    }
+
+    private Statement returnStatement() {
+        Token keyword = previous();
+        Expression value = null;
+        if (!check(TokenType.SEMICOLON))
+            value = expression();
+
+        consume(TokenType.SEMICOLON, "Expect ';' after return value.");
+        return new Statement.Return(keyword, value);
     }
 
     private Statement varDeclaration() {
@@ -232,6 +243,27 @@ public class Parser {
         Expression value = expression();
         consume(TokenType.SEMICOLON, "Expect ';' after value.");
         return new Statement.Expression(value);
+    }
+
+    private Statement.Function function(String kind) {
+        Token name = consume(TokenType.IDENTIFIER, "Expect " + kind + " name.");
+        consume(TokenType.LEFT_PARENTHESIS, "Expect '(' after " + kind + " name.");
+
+        List<Token> parameters = new ArrayList<>();
+        if (!check(TokenType.RIGHT_PARENTHESIS)) {
+            do {
+                if (parameters.size() >= 255)
+                    error(peek(), "Can't have more than 255 parameters.");
+
+                parameters.add(consume(TokenType.IDENTIFIER, "Expect parameter name."));
+            } while (match(TokenType.COMMA));
+        }
+
+        consume(TokenType.RIGHT_PARENTHESIS, "Expect ')' after parameters.");
+        consume(TokenType.LEFT_BRACE, "Expect '{' before " + kind + " body.");
+
+        List<Statement> body = block();
+        return new Statement.Function(name, parameters, body);
     }
 
     private Expression ternary() {
@@ -330,7 +362,36 @@ public class Parser {
             return new Expression.Unary(operator, right);
         }
 
-        return primary();
+        return call();
+    }
+
+    private Expression call() {
+        Expression expr = primary();
+
+        while (true) {
+            if (match(TokenType.LEFT_PARENTHESIS))
+                expr = finishCall(expr);
+            else
+                break;
+        }
+
+        return expr;
+    }
+
+    private Expression finishCall(Expression callee) {
+        List<Expression> arguments = new ArrayList<>();
+
+        if (!check(TokenType.RIGHT_PARENTHESIS)) {
+            do {
+                if (arguments.size() >= 255)
+                    error(peek(), "Can't have more than 255 arguments.");
+
+                arguments.add(expression());
+            } while (match(TokenType.COMMA));
+        }
+
+        Token parenthesis = consume(TokenType.RIGHT_PARENTHESIS, "Expect ')' after arguments.");
+        return new Expression.Call(callee, parenthesis, arguments);
     }
 
     private Expression primary() {

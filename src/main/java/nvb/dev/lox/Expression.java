@@ -1,5 +1,7 @@
 package nvb.dev.lox;
 
+import java.util.List;
+
 public abstract class Expression {
 
     interface Visitor<R> {
@@ -20,6 +22,8 @@ public abstract class Expression {
         R visitAssignExpr(Assign expr);
 
         R visitLogicalExpr(Logical expr);
+
+        R visitCallExpr(Call expr);
     }
 
     abstract <R> R accept(Visitor<R> visitor);
@@ -156,6 +160,23 @@ public abstract class Expression {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitLogicalExpr(this);
+        }
+    }
+
+    static class Call extends Expression {
+        final Expression callee;
+        final Token parenthesis;
+        final List<Expression> arguments;
+
+        Call(Expression callee, Token parenthesis, List<Expression> arguments) {
+            this.callee = callee;
+            this.parenthesis = parenthesis;
+            this.arguments = arguments;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitCallExpr(this);
         }
     }
 
