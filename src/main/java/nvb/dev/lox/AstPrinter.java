@@ -1,5 +1,8 @@
 package nvb.dev.lox;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class AstPrinter implements Expression.Visitor<String> {
 
     @Override
@@ -46,6 +49,11 @@ public class AstPrinter implements Expression.Visitor<String> {
     @Override
     public String visitLogicalExpr(Expression.Logical expr) {
         return parenthesize(expr.operator.lexeme, expr.left, expr.right);
+    }
+
+    @Override
+    public String visitCallExpr(Expression.Call expr) {
+        return null;
     }
 
     private String parenthesize(String name, Expression... expressions) {

@@ -1,8 +1,11 @@
 package nvb.dev.lox;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void> {
+
+    final Environment globals = new Environment();
 
     private static class BreakSignal extends RuntimeException {
     }
@@ -12,7 +15,26 @@ public class Interpreter implements Expression.Visitor<Object>, Statement.Visito
 
     private static final Object UNINITIALIZED = new Object();
 
-    private Environment environment = new Environment();
+    private Environment environment = globals;
+
+    Interpreter() {
+        globals.define("clock", new LoxCallable() {
+            @Override
+            public int arity() {
+                return 0;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments) {
+                return (double) System.currentTimeMillis() / 1000.0;
+            }
+
+            @Override
+            public String toString() {
+                return "<native fn>";
+            }
+        });
+    }
 
     void interpret(List<Statement> statements) {
         try {
@@ -161,6 +183,27 @@ public class Interpreter implements Expression.Visitor<Object>, Statement.Visito
     }
 
     @Override
+    public Object visitCallExpr(Expression.Call expr) {
+        Object callee = evaluate(expr.callee);
+
+        List<Object> arguments = new ArrayList<>();
+        for (Expression expression : expr.arguments) {
+            arguments.add(evaluate(expression));
+        }
+
+        if (!(callee instanceof LoxCallable function))
+            throw new RuntimeError(expr.parenthesis, "Can only functions and classes.");
+
+        if (arguments.size() != function.arity()) {
+            throw new RuntimeError(expr.parenthesis, "Expected " +
+                    function.arity() + " arguments but got " +
+                    arguments.size() + ".");
+        }
+
+        return function.call(this, arguments);
+    }
+
+    @Override
     public Void visitExpressionStatement(Statement.Expression stmt) {
         evaluate(stmt.expression);
         return null;
@@ -260,6 +303,22 @@ public class Interpreter implements Expression.Visitor<Object>, Statement.Visito
         throw new ContinueSignal();
     }
 
+    @Override
+    public Void visitFunctionStatement(Statement.Function stmt) {
+        LoxFunction function = new LoxFunction(stmt);
+        environment.define(stmt.name.lexeme, function);
+        return null;
+    }
+
+    @Override
+    public Void visitReturnStatement(Statement.Return stmt) {
+        Object value = null;
+        if (stmt.value != null)
+            value = evaluate(stmt.value);
+
+        throw new Return(value);
+    }
+
     private Object evaluate(Expression expr) {
         return expr.accept(this);
     }
@@ -291,7 +350,7 @@ public class Interpreter implements Expression.Visitor<Object>, Statement.Visito
         statement.accept(this);
     }
 
-    private void executeBlock(List<Statement> statements, Environment environment) {
+    public void executeBlock(List<Statement> statements, Environment environment) {
         Environment previous = this.environment;
 
         try {
