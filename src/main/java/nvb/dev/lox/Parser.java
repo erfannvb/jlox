@@ -34,6 +34,16 @@ public class Parser {
         }
     }
 
+    Statement parse() {
+        List<Statement> statements = new ArrayList<>();
+
+        while (!isAtEnd()) {
+            statements.add(declaration());
+        }
+
+        return new Statement.Block(statements);
+    }
+
     private Expression expression() {
         if (match(TokenType.COMMA)) {
             Token operator = previous();
