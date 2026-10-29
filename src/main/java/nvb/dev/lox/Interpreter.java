@@ -1,7 +1,9 @@
 package nvb.dev.lox;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void> {
 
@@ -16,6 +18,7 @@ public class Interpreter implements Expression.Visitor<Object>, Statement.Visito
     private static final Object UNINITIALIZED = new Object();
 
     private Environment environment = globals;
+    private final Map<Expression, Integer> locals = new HashMap<>();
 
     Interpreter() {
         globals.define("clock", new LoxCallable() {
@@ -157,13 +160,19 @@ public class Interpreter implements Expression.Visitor<Object>, Statement.Visito
         if (obj == UNINITIALIZED)
             throw new RuntimeError(expr.name, "Not initialized!");
 
-        return obj;
+        return lookUpVariable(expr.name, expr);
     }
 
     @Override
     public Object visitAssignExpr(Expression.Assign expr) {
         Object value = evaluate(expr.value);
-        environment.assign(expr.name, value);
+
+        Integer distance = locals.get(expr);
+        if (distance != null)
+            environment.assignAt(distance, expr.name, value);
+        else
+            globals.assign(expr.name, value);
+
         return value;
     }
 
@@ -350,6 +359,10 @@ public class Interpreter implements Expression.Visitor<Object>, Statement.Visito
         statement.accept(this);
     }
 
+    public void resolve(Expression expression, int depth) {
+        locals.put(expression, depth);
+    }
+
     public void executeBlock(List<Statement> statements, Environment environment) {
         Environment previous = this.environment;
 
@@ -362,5 +375,14 @@ public class Interpreter implements Expression.Visitor<Object>, Statement.Visito
         } finally {
             this.environment = previous;
         }
+    }
+
+    private Object lookUpVariable(Token name, Expression expression) {
+        Integer distance = locals.get(expression);
+
+        if (distance != null)
+            return environment.getAt(distance, name.lexeme);
+        else
+            return globals.get(name);
     }
 }
