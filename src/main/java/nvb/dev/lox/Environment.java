@@ -1,11 +1,14 @@
 package nvb.dev.lox;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Environment {
     final Environment enclosing;
-    private static final Map<String, Object> values = new HashMap<>();
+    private final Map<String, Object> globalVariables = new HashMap<>();
+    private final List<Object> localVariables = new ArrayList<>();
 
     Environment() {
         this.enclosing = null;
@@ -16,17 +19,18 @@ public class Environment {
     }
 
     Object get(Token name) {
-        if (values.containsKey(name.lexeme))
-            return values.get(name.lexeme);
+        if (globalVariables.containsKey(name.lexeme))
+            return globalVariables.get(name.lexeme);
 
         if (enclosing != null)
-            enclosing.get(name);
+            return enclosing.get(name);
 
         throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
     }
 
-    Object getAt(int distance, String name) {
-        return ancestor(distance).values.get(name);
+    Object getAt(int distance, int index) {
+        Environment ancestor = ancestor(distance);
+        return ancestor.localVariables.get(index);
     }
 
     Environment ancestor(int distance) {
@@ -38,12 +42,15 @@ public class Environment {
     }
 
     void define(String name, Object value) {
-        values.put(name, value);
+        if (isGlobal())
+            globalVariables.put(name, value);
+        else
+            localVariables.add(value);
     }
 
     void assign(Token name, Object value) {
-        if (values.containsKey(name.lexeme)) {
-            values.put(name.lexeme, value);
+        if (globalVariables.containsKey(name.lexeme)) {
+            globalVariables.put(name.lexeme, value);
             return;
         }
 
@@ -55,7 +62,12 @@ public class Environment {
         throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
     }
 
-    void assignAt(int distance, Token name, Object value) {
-        ancestor(distance).values.put(name.lexeme, value);
+    void assignAt(int distance, int index, Object value) {
+        Environment ancestor = ancestor(distance);
+        ancestor.localVariables.set(index, value);
+    }
+
+    private boolean isGlobal() {
+        return this.enclosing == null;
     }
 }
