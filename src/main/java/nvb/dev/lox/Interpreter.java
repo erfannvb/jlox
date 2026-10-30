@@ -18,7 +18,7 @@ public class Interpreter implements Expression.Visitor<Object>, Statement.Visito
     private static final Object UNINITIALIZED = new Object();
 
     private Environment environment = globals;
-    private final Map<Expression, Integer> locals = new HashMap<>();
+    private final Map<Expression, VariableLocation> locals = new HashMap<>();
 
     Interpreter() {
         globals.define("clock", new LoxCallable() {
@@ -156,20 +156,20 @@ public class Interpreter implements Expression.Visitor<Object>, Statement.Visito
 
     @Override
     public Object visitVariableExpr(Expression.Variable expr) {
-        Object obj = environment.get(expr.name);
+        Object obj = lookUpVariable(expr.name, expr);
         if (obj == UNINITIALIZED)
             throw new RuntimeError(expr.name, "Not initialized!");
 
-        return lookUpVariable(expr.name, expr);
+        return obj;
     }
 
     @Override
     public Object visitAssignExpr(Expression.Assign expr) {
         Object value = evaluate(expr.value);
 
-        Integer distance = locals.get(expr);
-        if (distance != null)
-            environment.assignAt(distance, expr.name, value);
+        VariableLocation variableLocation = locals.get(expr);
+        if (variableLocation != null)
+            environment.assignAt(variableLocation.distance(), variableLocation.index(), value);
         else
             globals.assign(expr.name, value);
 
@@ -359,8 +359,8 @@ public class Interpreter implements Expression.Visitor<Object>, Statement.Visito
         statement.accept(this);
     }
 
-    public void resolve(Expression expression, int depth) {
-        locals.put(expression, depth);
+    public void resolve(Expression expression, int depth, int index) {
+        locals.put(expression, new VariableLocation(depth, index));
     }
 
     public void executeBlock(List<Statement> statements, Environment environment) {
@@ -378,10 +378,10 @@ public class Interpreter implements Expression.Visitor<Object>, Statement.Visito
     }
 
     private Object lookUpVariable(Token name, Expression expression) {
-        Integer distance = locals.get(expression);
+        VariableLocation variableLocation = locals.get(expression);
 
-        if (distance != null)
-            return environment.getAt(distance, name.lexeme);
+        if (variableLocation != null)
+            return environment.getAt(variableLocation.distance(), variableLocation.index());
         else
             return globals.get(name);
     }

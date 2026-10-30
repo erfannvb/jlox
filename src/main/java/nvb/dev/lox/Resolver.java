@@ -226,7 +226,8 @@ public class Resolver implements Expression.Visitor<Void>, Statement.Visitor<Voi
         if (scope.containsKey(name.lexeme))
             Lox.error(name, "Already variable with this name in this scope.");
 
-        scope.put(name.lexeme, new VariableInfo(name));
+        int index = scope.size();
+        scope.put(name.lexeme, new VariableInfo(name, index));
     }
 
     private void define(Token name) {
@@ -243,7 +244,7 @@ public class Resolver implements Expression.Visitor<Void>, Statement.Visitor<Voi
                 VariableInfo variableInfo = variableInfoMap.get(name.lexeme);
                 if (readOperation)
                     variableInfo.isUsed = true;
-                interpreter.resolve(expression, scopes.size() - 1 - i);
+                interpreter.resolve(expression, scopes.size() - 1 - i, variableInfo.index);
                 return;
             }
         }
