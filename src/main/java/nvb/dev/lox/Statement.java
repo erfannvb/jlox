@@ -183,7 +183,7 @@ public abstract class Statement {
 
         @Override
         <R> R accept(Visitor<R> visitor) {
-            return null;
+            return visitor.visitReturnStatement(this);
         }
     }
 
