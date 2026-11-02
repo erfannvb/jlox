@@ -372,6 +372,14 @@ public class Parser {
             return new Expression.Unary(operator, right);
         }
 
+        if (match(TokenType.PLUS_PLUS, TokenType.MINUS_MINUS)) {
+            Token operator = previous();
+            Expression expression = unary();
+            if (!(expression instanceof Expression.Variable))
+                error(operator, "Invalid increment/decrement target. Operand must be a variable.");
+            return new Expression.IncrementDecrement(expression, operator, Fixity.PREFIX);
+        }
+
         return call();
     }
 
@@ -379,9 +387,15 @@ public class Parser {
         Expression expr = primary();
 
         while (true) {
-            if (match(TokenType.LEFT_PARENTHESIS))
+            if (match(TokenType.LEFT_PARENTHESIS)) {
                 expr = finishCall(expr);
-            else
+            } else if (match(TokenType.PLUS_PLUS, TokenType.MINUS_MINUS)) {
+                Token operator = previous();
+                if (!(expr instanceof Expression.Variable))
+                    error(operator, "Invalid increment/decrement target. Operand must be a variable.");
+
+                expr = new Expression.IncrementDecrement(expr, operator, Fixity.POSTFIX);
+            } else
                 break;
         }
 

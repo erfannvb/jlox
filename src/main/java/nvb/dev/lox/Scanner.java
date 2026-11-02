@@ -74,10 +74,10 @@ public class Scanner {
                 addToken(TokenType.DOT);
                 break;
             case '-':
-                addToken(TokenType.MINUS);
+                addToken(match('-') ? TokenType.MINUS_MINUS : TokenType.MINUS);
                 break;
             case '+':
-                addToken(TokenType.PLUS);
+                addToken(match('+') ? TokenType.PLUS_PLUS : TokenType.PLUS);
                 break;
             case ';':
                 addToken(TokenType.SEMICOLON);

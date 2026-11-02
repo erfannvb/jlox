@@ -6,24 +6,16 @@ public abstract class Expression {
 
     interface Visitor<R> {
         R visitBinaryExpr(Binary expr);
-
         R visitLiteralExpr(Literal expr);
-
         R visitGroupingExpr(Grouping expr);
-
         R visitUnaryExpr(Unary expr);
-
         R visitCommaExpr(Comma expr);
-
         R visitConditionalExpr(Conditional expr);
-
         R visitVariableExpr(Variable expr);
-
         R visitAssignExpr(Assign expr);
-
         R visitLogicalExpr(Logical expr);
-
         R visitCallExpr(Call expr);
+        R visitIncrementDecrementExpr(IncrementDecrement expr);
     }
 
     abstract <R> R accept(Visitor<R> visitor);
@@ -177,6 +169,23 @@ public abstract class Expression {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitCallExpr(this);
+        }
+    }
+
+    static class IncrementDecrement extends Expression {
+        final Expression operand;
+        final Token operator;
+        final Fixity fixity;
+
+        IncrementDecrement(Expression operand, Token operator, Fixity fixity) {
+            this.operand = operand;
+            this.operator = operator;
+            this.fixity = fixity;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitIncrementDecrementExpr(this);
         }
     }
 

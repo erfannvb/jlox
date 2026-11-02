@@ -166,13 +166,7 @@ public class Interpreter implements Expression.Visitor<Object>, Statement.Visito
     @Override
     public Object visitAssignExpr(Expression.Assign expr) {
         Object value = evaluate(expr.value);
-
-        VariableLocation variableLocation = locals.get(expr);
-        if (variableLocation != null)
-            environment.assignAt(variableLocation.distance(), variableLocation.index(), value);
-        else
-            globals.assign(expr.name, value);
-
+        updateVariable(expr, expr.name, value);
         return value;
     }
 
@@ -210,6 +204,25 @@ public class Interpreter implements Expression.Visitor<Object>, Statement.Visito
         }
 
         return function.call(this, arguments);
+    }
+
+    @Override
+    public Object visitIncrementDecrementExpr(Expression.IncrementDecrement expr) {
+        if (!(expr.operand instanceof Expression.Variable variable))
+            throw new RuntimeError(expr.operator, "Invalid increment/decrement target.");
+
+        Object oldValue = evaluate(expr.operand);
+        if (!(oldValue instanceof Double number))
+            throw new RuntimeError(expr.operator, "Operand must be a number.");
+
+        Object newValue;
+        if (expr.operator.type == TokenType.PLUS_PLUS)
+            newValue = number + 1;
+        else
+            newValue = number - 1;
+
+        updateVariable(expr.operand, variable.name, newValue);
+        return expr.fixity == Fixity.POSTFIX ? oldValue : newValue;
     }
 
     @Override
@@ -384,5 +397,13 @@ public class Interpreter implements Expression.Visitor<Object>, Statement.Visito
             return environment.getAt(variableLocation.distance(), variableLocation.index());
         else
             return globals.get(name);
+    }
+
+    private void updateVariable(Expression expression, Token name, Object value) {
+        VariableLocation variableLocation = locals.get(expression);
+        if (variableLocation != null)
+            environment.assignAt(variableLocation.distance(), variableLocation.index(), value);
+        else
+            globals.assign(name, value);
     }
 }

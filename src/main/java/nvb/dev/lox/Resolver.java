@@ -90,6 +90,12 @@ public class Resolver implements Expression.Visitor<Void>, Statement.Visitor<Voi
     }
 
     @Override
+    public Void visitIncrementDecrementExpr(Expression.IncrementDecrement expr) {
+        resolve(expr.operand);
+        return null;
+    }
+
+    @Override
     public Void visitExpressionStatement(Statement.Expression stmt) {
         resolve(stmt.expression);
         return null;
